@@ -1,13 +1,25 @@
 
 #include <ESP8266.h>
 #include <SoftwareSerial.h>
+#include <Wire.h>
+#include <SPI.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
+#include <ArduinoJson.h>
 
 #define SSID        "KMU_SW"
 #define PASSWORD    "kookminsw"
 #define HOST_NAME   "api.thingspeak.com"
 #define HOST_PORT   (80)
 #define API_KEY     "1KMV7AZNGQI6EX2H"
-#define WAIT        (600000)
+#define WAIT        (10000)
+
+#define BME_SCK 13
+#define BME_MISO 12
+#define BME_MOSI 11
+#define BME_CS 10
+
+Adafruit_BME280 bme; // I2C
 
 SoftwareSerial mySerial(2, 3); /* RX:D3, TX:D2 */
 ESP8266 wifi(mySerial);
@@ -16,6 +28,9 @@ void setup(void)
 {
   Serial.begin(9600);
   Serial.print("setup begin\r\n");
+
+  bool status;  
+  status = bme.begin(); 
 
   Serial.print("FW Version:");
   Serial.println(wifi.getVersion().c_str());
@@ -53,10 +68,11 @@ void loop(void)
     Serial.print("create tcp err\r\n");
   }
 
-    int temp = 40;
-    int humid = 50;
+
+    int temp = int(bme.readTemperature());
+    int humid = int(bme.readHumidity());
     int pm25 = 10;
-    int pm10 = 100;
+    int pm10 = 10;
     
     char *paramTpl = "?api_key=%s&field1=%d&field2=%d&field3=%d&field4=%d";
     char param[80];
